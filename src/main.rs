@@ -2,6 +2,7 @@ mod day1;
 mod day2;
 mod day3;
 mod day4;
+mod day5;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -44,6 +45,10 @@ fn main() {
             "4" => {
                 result1 = day4::part1(vec_data.clone());
                 result2 = day4::part2(vec_data.clone());
+            }
+            "5" => {
+                result1 = day5::part1(vec_data.clone());
+                result2 = day5::part2(vec_data.clone());
             }
             _ => panic!("invalid day passed"),
         }
