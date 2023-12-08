@@ -60,10 +60,7 @@ fn get_type(hand: String) -> i32 {
         let mut max: char = 'L';
         for (c, count) in card_counts.clone() {
             if c != '1' {
-                if max == 'L' {
-                    max = c
-                }
-                if card_counts[&max] < count {
+                if max == 'L' || card_counts[&max] < count {
                     max = c;
                 }
             }
