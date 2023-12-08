@@ -48,9 +48,8 @@ fn walk_map(
     return steps_to_ends;
 }
 
-pub fn get_lcm(nums: Vec<i128>) -> i128 {
-    let mut sorted_nums = nums.clone();
-    sorted_nums.sort();
+pub fn get_lcm(nums: &mut Vec<i128>) -> i128 {
+    nums.sort();
 
     fn gcd(a: i128, b: i128) -> i128 {
         if b == 0 {
@@ -64,9 +63,9 @@ pub fn get_lcm(nums: Vec<i128>) -> i128 {
         return (a * b) / gcd(a, b);
     }
 
-    let low = sorted_nums[0];
+    let low = nums[0];
 
-    sorted_nums.iter().fold(low, |acc, x| lcm(acc, *x))
+    nums.iter().fold(low, |acc, x| lcm(acc, *x))
 }
 
 pub fn part1(data: Vec<String>) -> String {
@@ -86,7 +85,7 @@ pub fn part2(data: Vec<String>) -> String {
         end_steps.append(&mut walk_map(i.to_owned(), directions.clone(), map.clone()));
     }
 
-    let lcm = get_lcm(end_steps);
+    let lcm = get_lcm(&mut end_steps);
 
     println!("fish {:#?}", lcm);
     return lcm.to_string();
