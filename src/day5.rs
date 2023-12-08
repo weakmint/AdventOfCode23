@@ -1,7 +1,4 @@
-use std::{
-    collections::{hash_map, HashMap},
-    vec,
-};
+use std::{collections::HashMap, vec};
 
 #[derive(Clone, Debug)]
 struct Map {
@@ -9,7 +6,6 @@ struct Map {
     source_max: i64,
     destination_min: i64,
     destination_max: i64,
-    range: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -64,7 +60,6 @@ fn parse_data(data: Vec<String>) -> (Vec<i64>, HashMap<String, Vec<Map>>) {
                     source_max: parts[1] + parts[2] - 1,
                     destination_min: parts[0],
                     destination_max: parts[0] + parts[2] - 1,
-                    range: parts[2] - 1,
                 };
 
                 curr_maps.push(map);
@@ -95,11 +90,10 @@ fn get_seed_ranges(seeds: Vec<i64>) -> Vec<SeedRange> {
     while let Some(seed) = iter.next() {
         seed_range.push(SeedRange {
             seed_min: *seed,
-            seed_max: *seed + *iter.next().unwrap(),
+            seed_max: *seed + *iter.next().unwrap() - 1,
         })
     }
 
-    println!("{:#?}", seed_range);
     return seed_range;
 }
 
@@ -107,6 +101,7 @@ fn between(t: i64, min: i64, max: i64) -> bool {
     return min <= t && t <= max;
 }
 
+// this function is hell i'm sorry
 fn chunk_it_up(
     num_min: i64,
     num_max: i64,
@@ -122,32 +117,26 @@ fn chunk_it_up(
     } else {
         &map_keys
     };
-    //println!("{}", key);
     for (i, map) in maps[key].clone().into_iter().enumerate() {
-        println!(
-            "key {} smin {} smax {} min {} max {}",
-            key, map.source_min, map.source_max, min, max
-        );
         let min_contained = between(min, map.source_min, map.source_max);
         let max_contained = between(max, map.source_min, map.source_max);
         if min < map.source_min && max > map.source_max {
-            println!("overflow");
-            //println!("min {} max {}", min, max);
-            // left
+            // seed range fully overlaps the map range with extra to the right and left
+            // left overflow
             smallest.append(&mut chunk_it_up(
                 min,
                 map.source_min - 1,
                 maps,
                 &map_keys.clone(),
             ));
-            // right
+            // right overflow
             smallest.append(&mut chunk_it_up(
                 map.source_max + 1,
                 max,
                 maps,
                 &map_keys.clone(),
             ));
-            //center
+            //center (the whole map range)
             if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(
                     map.destination_min,
@@ -157,13 +146,11 @@ fn chunk_it_up(
                 ));
             } else {
                 smallest.push([map.destination_min].to_vec());
-                println!("min {}", min);
                 return smallest;
             }
             break;
         } else if min_contained && max_contained {
-            println!("both");
-            //println!("min {} max {}", min, max);
+            // seed range fits fully inside the map range
             if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(
                     min - map.source_min + map.destination_min,
@@ -173,13 +160,11 @@ fn chunk_it_up(
                 ));
             } else {
                 smallest.push([min - map.source_min + map.destination_min].to_vec());
-                println!("min {}", min - map.source_min + map.destination_min);
                 return smallest;
             }
             break;
         } else if min_contained {
-            println!("min");
-            //println!("min {} max {}", min, max);
+            // seed range has a left part that overlaps the map range with extra to the right
             smallest.append(&mut chunk_it_up(
                 map.source_max + 1,
                 max,
@@ -195,14 +180,10 @@ fn chunk_it_up(
                 ));
             } else {
                 smallest.push([min - map.source_min + map.destination_min].to_vec());
-                println!("min {}", min - map.source_min + map.destination_min);
                 return smallest;
             }
-            //println!("min {} max {}", min, max);
         } else if max_contained {
-            println!("max");
-            //println!("min {} max {}", min, max);
-            //println!("garf! {}", key);
+            // seed range has a right part that overlaps the map range with extra to the left
             smallest.append(&mut chunk_it_up(
                 min,
                 map.source_min - 1,
@@ -211,30 +192,26 @@ fn chunk_it_up(
             ));
             if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(
-                    min - map.source_min + map.destination_min,
-                    map.destination_max,
+                    map.destination_min,
+                    max - map.source_min + map.destination_min,
                     maps,
                     &next_keys.to_vec(),
                 ));
             } else {
                 smallest.push([min - map.source_min + map.destination_min].to_vec());
-                println!("min {}", min - map.source_min + map.destination_min);
                 return smallest;
             }
             break;
-        } //println!("oop");
+        }
         if i == maps[key].len() - 1 {
-            println!("neither");
             if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(min, max, maps, &mut next_keys.to_vec()));
             } else {
                 smallest.push([min].to_vec());
-                println!("min {}", min);
                 return smallest;
             }
         }
     }
-    // println!("{} {} {:#?}", min, max, smallest);
     return smallest;
 }
 
@@ -247,21 +224,17 @@ pub fn part1(data: Vec<String>) -> String {
 
 pub fn part2(data: Vec<String>) -> String {
     let (seeds, maps) = parse_data(data);
-    println!("{:#?}", maps);
-    let mut locations: Vec<Vec<i64>> = vec![];
+    let mut location_ranges: Vec<Vec<i64>> = vec![];
     let seed_ranges = get_seed_ranges(seeds);
-    locations.append(&mut &mut chunk_it_up(79, 93, &maps, &MAP_KEYS.to_vec()));
-    // for range in seed_ranges[..1].iter() {
-    //     locations.append(&mut chunk_it_up(
-    //         range.seed_min,
-    //         range.seed_max,
-    //         &maps,
-    //         &MAP_KEYS.to_vec(),
-    //     ));
-    //     //println!("{} {}", range.seed_min, range.seed_max);
-    // }
-    let mut ehhhh = locations.iter().map(|x| x[0]).collect::<Vec<i64>>();
-    ehhhh.sort();
-    println!("{:#?}", ehhhh);
-    return ehhhh[0].to_string();
+    for range in seed_ranges {
+        location_ranges.append(&mut chunk_it_up(
+            range.seed_min,
+            range.seed_max,
+            &maps,
+            &MAP_KEYS.to_vec(),
+        ));
+    }
+    let mut locations = location_ranges.iter().map(|x| x[0]).collect::<Vec<i64>>();
+    locations.sort();
+    return locations[0].to_string();
 }
