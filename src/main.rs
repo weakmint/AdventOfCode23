@@ -5,6 +5,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -18,7 +19,7 @@ fn main() {
 
     let filename: String;
     match test {
-        Some(test) => filename = format!("test{}.txt", test),
+        Some(ref test) => filename = format!("test{}.txt", test.clone()),
         None => filename = "data.txt".to_string(),
     }
 
@@ -60,6 +61,14 @@ fn main() {
             "7" => {
                 result1 = day7::part1(vec_data.clone());
                 result2 = day7::part2(vec_data.clone());
+            }
+            "8" => {
+                result1 = if test != None && test.unwrap().parse::<i32>().unwrap() != 3 {
+                    day8::part1(vec_data.clone())
+                } else {
+                    "Not applicable for test 3".to_string()
+                };
+                result2 = day8::part2(vec_data.clone());
             }
             _ => panic!("invalid day passed"),
         }
