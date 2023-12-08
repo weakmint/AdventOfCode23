@@ -95,7 +95,7 @@ fn get_seed_ranges(seeds: Vec<i64>) -> Vec<SeedRange> {
     while let Some(seed) = iter.next() {
         seed_range.push(SeedRange {
             seed_min: *seed,
-            seed_max: *seed + *iter.next().unwrap() - 1,
+            seed_max: *seed + *iter.next().unwrap(),
         })
     }
 
@@ -116,107 +116,123 @@ fn chunk_it_up(
     let mut smallest: Vec<Vec<i64>> = vec![];
     let min = num_min;
     let max = num_max;
-    if map_keys.len() > 0 {
-        let key = map_keys[0];
-        let next_keys = if map_keys.len() > 1 {
-            &map_keys[..1]
-        } else {
-            &map_keys
-        };
-        //println!("{}", key);
-        for (i, map) in maps[key].clone().into_iter().enumerate() {
-            //println!("key {} min {} max {}", key, map.source_min, map.source_max);
-            let min_contained = between(min, map.source_min, map.source_max);
-            let max_contained = between(max, map.source_min, map.source_max);
-            if min < map.source_min && max > map.source_max {
-                //println!("overflow");
-                //println!("min {} max {}", min, max);
-                // left
-                smallest.append(&mut chunk_it_up(
-                    min,
-                    map.source_min - 1,
-                    maps,
-                    &map_keys.clone(),
-                ));
-                //center
+    let key = map_keys[0];
+    let next_keys = if map_keys.len() > 1 {
+        &map_keys[1..]
+    } else {
+        &map_keys
+    };
+    //println!("{}", key);
+    for (i, map) in maps[key].clone().into_iter().enumerate() {
+        println!(
+            "key {} smin {} smax {} min {} max {}",
+            key, map.source_min, map.source_max, min, max
+        );
+        let min_contained = between(min, map.source_min, map.source_max);
+        let max_contained = between(max, map.source_min, map.source_max);
+        if min < map.source_min && max > map.source_max {
+            println!("overflow");
+            //println!("min {} max {}", min, max);
+            // left
+            smallest.append(&mut chunk_it_up(
+                min,
+                map.source_min - 1,
+                maps,
+                &map_keys.clone(),
+            ));
+            // right
+            smallest.append(&mut chunk_it_up(
+                map.source_max + 1,
+                max,
+                maps,
+                &map_keys.clone(),
+            ));
+            //center
+            if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(
                     map.destination_min,
                     map.destination_max,
                     maps,
-                    &mut next_keys.to_vec(),
+                    &next_keys.to_vec(),
                 ));
-                // right
+            } else {
+                smallest.push([map.destination_min].to_vec());
+                println!("min {}", min);
+                return smallest;
+            }
+            break;
+        } else if min_contained && max_contained {
+            println!("both");
+            //println!("min {} max {}", min, max);
+            if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(
-                    map.source_max + 1,
-                    max,
+                    min - map.source_min + map.destination_min,
+                    max - map.source_min + map.destination_min,
                     maps,
-                    &map_keys.clone(),
+                    &next_keys.to_vec(),
                 ));
-                break;
-            } else if min_contained && max_contained {
-                //println!("both");
-                //println!("min {} max {}", min, max);
-                if map_keys.len() == 1 {
-                    smallest.push([min].to_vec());
-                } else {
-                    smallest.append(&mut chunk_it_up(
-                        min - map.source_min + map.destination_min,
-                        max - map.source_min + map.destination_min,
-                        maps,
-                        &mut next_keys.to_vec(),
-                    ));
-                }
-                break;
-            } else if min_contained {
-                //println!("min");
-                //println!("min {} max {}", min, max);
-                if map_keys.len() == 1 {
-                    smallest.push([min].to_vec());
-                } else {
-                    smallest.append(&mut chunk_it_up(
-                        min - map.source_min + map.destination_min,
-                        map.destination_max,
-                        maps,
-                        &mut next_keys.to_vec(),
-                    ));
-                    smallest.append(&mut chunk_it_up(
-                        map.source_max + 1,
-                        max,
-                        maps,
-                        &map_keys.clone(),
-                    ));
-                    //println!("min {} max {}", min, max);
-                }
-                break;
-            } else if max_contained {
-                //println!("max");
-                //println!("min {} max {}", min, max);
-                if map_keys.len() == 1 {
-                    smallest.push([min].to_vec());
-                } else {
-                    smallest.append(&mut chunk_it_up(
-                        map.destination_min,
-                        max - map.source_min + map.destination_min,
-                        maps,
-                        &mut next_keys.to_vec(),
-                    ));
-                    //println!("garf! {}", key);
-                    smallest.append(&mut chunk_it_up(
-                        min,
-                        map.source_min - 1,
-                        maps,
-                        &map_keys.clone(),
-                    ));
-                }
-                break;
-            } //println!("oop");
-            if i == maps[key].len() - 1 {
-                //println!("neither");
+            } else {
+                smallest.push([min - map.source_min + map.destination_min].to_vec());
+                println!("min {}", min - map.source_min + map.destination_min);
+                return smallest;
+            }
+            break;
+        } else if min_contained {
+            println!("min");
+            //println!("min {} max {}", min, max);
+            smallest.append(&mut chunk_it_up(
+                map.source_max + 1,
+                max,
+                maps,
+                &map_keys.clone(),
+            ));
+            if map_keys.len() > 1 {
+                smallest.append(&mut chunk_it_up(
+                    min - map.source_min + map.destination_min,
+                    map.destination_max,
+                    maps,
+                    &next_keys.to_vec(),
+                ));
+            } else {
+                smallest.push([min - map.source_min + map.destination_min].to_vec());
+                println!("min {}", min - map.source_min + map.destination_min);
+                return smallest;
+            }
+            //println!("min {} max {}", min, max);
+        } else if max_contained {
+            println!("max");
+            //println!("min {} max {}", min, max);
+            //println!("garf! {}", key);
+            smallest.append(&mut chunk_it_up(
+                min,
+                map.source_min - 1,
+                maps,
+                &map_keys.clone(),
+            ));
+            if map_keys.len() > 1 {
+                smallest.append(&mut chunk_it_up(
+                    min - map.source_min + map.destination_min,
+                    map.destination_max,
+                    maps,
+                    &next_keys.to_vec(),
+                ));
+            } else {
+                smallest.push([min - map.source_min + map.destination_min].to_vec());
+                println!("min {}", min - map.source_min + map.destination_min);
+                return smallest;
+            }
+            break;
+        } //println!("oop");
+        if i == maps[key].len() - 1 {
+            println!("neither");
+            if map_keys.len() > 1 {
                 smallest.append(&mut chunk_it_up(min, max, maps, &mut next_keys.to_vec()));
+            } else {
+                smallest.push([min].to_vec());
+                println!("min {}", min);
+                return smallest;
             }
         }
-    } else {
-        smallest.push([min].to_vec());
     }
     // println!("{} {} {:#?}", min, max, smallest);
     return smallest;
@@ -234,17 +250,18 @@ pub fn part2(data: Vec<String>) -> String {
     println!("{:#?}", maps);
     let mut locations: Vec<Vec<i64>> = vec![];
     let seed_ranges = get_seed_ranges(seeds);
-    for range in seed_ranges {
-        locations.append(&mut chunk_it_up(
-            range.seed_min,
-            range.seed_max,
-            &maps,
-            &MAP_KEYS.to_vec(),
-        ));
-        //println!("{} {}", range.seed_min, range.seed_max);
-    }
+    locations.append(&mut &mut chunk_it_up(79, 93, &maps, &MAP_KEYS.to_vec()));
+    // for range in seed_ranges[..1].iter() {
+    //     locations.append(&mut chunk_it_up(
+    //         range.seed_min,
+    //         range.seed_max,
+    //         &maps,
+    //         &MAP_KEYS.to_vec(),
+    //     ));
+    //     //println!("{} {}", range.seed_min, range.seed_max);
+    // }
     let mut ehhhh = locations.iter().map(|x| x[0]).collect::<Vec<i64>>();
     ehhhh.sort();
-    //println!("{:#?}", ehhhh);
+    println!("{:#?}", ehhhh);
     return ehhhh[0].to_string();
 }
