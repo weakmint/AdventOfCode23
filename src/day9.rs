@@ -1,5 +1,3 @@
-use std::cmp::Reverse;
-
 fn extrapolate(data: Vec<String>) -> (i64, i64) {
     fn get_differences(history: &Vec<i64>, values: &mut Vec<Vec<i64>>) -> Vec<Vec<i64>> {
         let mut next = vec![];
