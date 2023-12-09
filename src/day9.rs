@@ -5,11 +5,7 @@ fn extrapolate(data: Vec<String>) -> (i64, i64) {
         let mut next = vec![];
         for i in 0..history.len() - 1 {
             let difference = history[i] - history[i + 1];
-            if difference < 0 {
-                next.push(difference * -1);
-            } else {
-                next.push(difference * -1);
-            }
+            next.push(difference * -1);
         }
         values.push(next.clone());
         if !next.clone().iter().all(|x| x == &0) {
