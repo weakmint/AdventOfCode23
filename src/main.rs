@@ -6,6 +6,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -69,6 +70,10 @@ fn main() {
                     "Not applicable for test 3".to_string()
                 };
                 result2 = day8::part2(vec_data.clone());
+            }
+            "9" => {
+                result1 = day9::part1(vec_data.clone());
+                result2 = day9::part2(vec_data.clone());
             }
             _ => panic!("invalid day passed"),
         }
