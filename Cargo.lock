@@ -7,6 +7,7 @@ name = "advent_of_code_2023"
 version = "0.1.0"
 dependencies = [
  "relative-path",
+ "tramp",
 ]
 
 [[package]]
@@ -14,3 +15,9 @@ name = "relative-path"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c707298afce11da2efef2f600116fa93ffa7a032b5d7b628aa17711ec81383ca"
+
+[[package]]
+name = "tramp"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1ee032eda9f2e819b93fed2bbb2ea4e459b78cd0141b9e3644ec6dc013b2cf4"

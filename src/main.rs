@@ -1,4 +1,8 @@
+#[macro_use]
+extern crate tramp;
+
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -64,7 +68,7 @@ fn main() {
                 result2 = day7::part2(vec_data.clone());
             }
             "8" => {
-                result1 = if test != None && test.unwrap().parse::<i32>().unwrap() != 3 {
+                result1 = if test == None || test.unwrap().parse::<i32>().unwrap() != 3 {
                     day8::part1(vec_data.clone())
                 } else {
                     "Not applicable for test 3".to_string()
@@ -74,6 +78,14 @@ fn main() {
             "9" => {
                 result1 = day9::part1(vec_data.clone());
                 result2 = day9::part2(vec_data.clone());
+            }
+            "10" => {
+                result1 = if test == None || test.unwrap().parse::<i32>().unwrap() != 3 {
+                    day10::part1(vec_data.clone())
+                } else {
+                    "Not applicable for test 3".to_string()
+                };
+                result2 = day10::part2(vec_data.clone());
             }
             _ => panic!("invalid day passed"),
         }
