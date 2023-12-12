@@ -3,6 +3,7 @@ extern crate tramp;
 
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -86,6 +87,10 @@ fn main() {
                     "Not applicable for test 3".to_string()
                 };
                 result2 = day10::part2(vec_data.clone());
+            }
+            "11" => {
+                result1 = day11::part1(vec_data.clone());
+                result2 = day11::part2(vec_data.clone());
             }
             _ => panic!("invalid day passed"),
         }
